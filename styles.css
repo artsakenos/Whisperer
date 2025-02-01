@@ -1,0 +1,25 @@
+.button-panel, .dropdown-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 200px;
+}
+.button-panel button, .dropdown-panel button {
+    white-space: nowrap;
+}
+#output {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+}
+.textarea-small {
+    flex-grow: 1;
+    resize: none;
+}
+.panel-container {
+    display: flex;
+    align-items: stretch;
+    gap: 15px;
+}
