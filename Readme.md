@@ -1,15 +1,18 @@
 # Whisperer TelePrompter 🎙️
 
 [![GitHub](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/artsakenos/Whisperer)
-[![Version](https://img.shields.io/badge/version-1.0.0-cyan.svg)](https://github.com/artsakenos/Whisperer)
+[![Version](https://img.shields.io/badge/version-0.1.0-cyan.svg)](https://github.com/artsakenos/Whisperer)
 ![Made With](https://img.shields.io/badge/made%20with-JavaScript-yellow)
 
 Whisperer is an intelligent🤖 speech recognition💬 assistant that acts as your real-time conversation companion. 
 It provides context-aware suggestions, interactive feedback, and operates entirely in your browser.
+
+It can be tuned to listen to any speech channel, from your microphone, from a window, a streaming video, a meeting app.
+
 Perfect for realtime translations, interviews, presentations, 
 or any scenario where you need a smart, discreet prompter by your side.
 
-![Demo Banner](https://via.placeholder.com/800x200.png?text=Whisperer+in+Action+-+Real-time+Speech+Analysis+%26+Smart+Suggestions)
+![Demo Banner](./assets/whisper_demo_banner.jpg)
 
 > "Think of it as your personal speech Jedi Knight 👨🚀 - it anticipates, adapts, and assists before you even finish your sentence!"
 
@@ -81,4 +84,4 @@ According to the prompt in config_prompts.js a Joke in Spanish will be output.
 
 ## TODO 🗺️
 - [ ] Refine prompts and add a personal CV to the context window
-- [ ] Aggiungere un caso d'uso presentazione, durante una presentazione fornisce esempi e suggerimenti
+- [ ] Aggiungere un caso d'uso presentazione, durante la quale fornisce esempi e suggerimenti
