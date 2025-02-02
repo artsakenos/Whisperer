@@ -11,6 +11,12 @@ window.config_system = {
             url: "https://api.groq.com/openai/v1/chat/completions",
             model: "llama-3.3-70b-versatile",
             api_key: null,
+        },
+        tester: {
+            provider: "groq",
+            url: "https://api.groq.com/openai/v1/chat/completions",
+            model: "llama-3.3-70b-versatile",
+            api_key: null,
         }
     },
     language: "it-IT",
