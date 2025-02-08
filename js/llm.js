@@ -1,13 +1,20 @@
-// Rimuovi le importazioni e definisci le variabili manualmente
-const config_system = window.config_system; // Verrà caricato da config_system.js
-const prompt = window.prompt; // Verrà caricato da config_prompts.js
+const config_system = window.config_system; // Loaded from config_system.js
+const config_prompts = window.prompt; // Loaded from config_prompts.js
 
 const max_completion_tokens = 512;
 
-// Definisci la funzione queryLLM
+/**
+ * Query the LLM model.
+ * 
+ * @param {string} mode The mode
+ * @param {string} agentName, The Agent Name
+ * @param {string} userInput The User Input
+ * @param {function} callback The Callback function: (error, result) => {}
+ */
 async function queryLLM(mode, agentName, userInput, callback) {
-    const agent = config_system.agents[agentName];
-    const apiKey = window.api_key[agent.provider];
+    const agent = config_prompts[mode][agentName]; // Contains prompt and provider
+    const provider = config_system.providers[agent.provider]; // Contains the provider url and model
+    const apiKey = window.api_key[agent.provider]; // Contains the API key
 
     if (apiKey === null) {
         callback(`Set your LLM ${agentName} API key in the <i>config_user.js</i>.`, null);
@@ -18,14 +25,14 @@ async function queryLLM(mode, agentName, userInput, callback) {
         messages: [
             {
                 role: "system",
-                content: prompt[mode][agentName]
+                content: agent.prompt
             },
             {
                 role: "user",
                 content: userInput
             }
         ],
-        model: agent.model,
+        model: provider.model,
         temperature: 1,
         top_p: 1,
         stream: false,
@@ -41,7 +48,7 @@ async function queryLLM(mode, agentName, userInput, callback) {
     }
 
     try {
-        const response = await fetch(agent.url, {
+        const response = await fetch(provider.url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

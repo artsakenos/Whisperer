@@ -25,13 +25,14 @@
                 placeholder="📝 Activate your RealTime Assistant... 🎤"></textarea>
             <div class="dropdown-panel">
                 <select id="cmb_language" class="form-select">
-                    <option value="" selected>🌐 Language</option>
+                    <option value="en-US" selected>🌐 Language</option>
                     <option value="it-IT">🇮🇹 Italiano</option>
                     <option value="en-US">🇺🇸 English</option>
                     <option value="zh-CN">🇨🇳 中文</option>
                 </select>
                 <select id="cmb_mode" class="form-select">
-                    <option value="" selected>⚙️ Mode</option>
+                    <option value="transcription" selected>⚙️ Mode</option>
+                    <option value="transcription">✍ Transcription</option>
                     <option value="interview">💼 Interview</option>
                     <option value="translate">📜 Translator</option>
                     <option value="lifecoach">🧠 Life Coach</option>
@@ -48,8 +49,8 @@
     <script src="./config/config_system.js"></script>
     <script src="./config/config_user.js"></script>
     <script src="./config/config_prompts.js"></script>
-    <script src="./llm.js"></script>
-    <script src="./script.js"></script>
+    <script src="./js/llm.js"></script>
+    <script src="./js/script.js"></script>
     <script src="./js/agents.js"></script>
 </body>
 

@@ -1,26 +1,47 @@
 /**
  * The handleOutput function queries the appropriate agents based on the current transcript of the conversation.
- * It uses the queryLLM function, which selects the correct prompt depending on the current mode and the agent responsible for the response.
+ * It uses the queryLLM function, which selects the correct prompt depending on the current mode 
+ * and the agent responsible for the response.
  * The flow may vary depending on the selected mode.
+ * <i>queryLLM(...)</i> calls the appropriate endpoint and builds the required prompts based on the mode and agent.
  *
  * @param {string} mode The current mode (e.g., interview, translate, etc.)
+ * @param {string} language The current language (e.g., it-IT, en-US, etc.)
  * @param {array} lastSentences An array containing the most recent transcripted sentences
  * @param {string} lastSentence The latest transcripted sentence
  * @param {string} lastAssistantAnswer The last response provided by the assistant
  *  (This is useful to avoid calling the LLM or changing the response if the assistant's answer hasn't changed)
  * @returns {string} The response from the LLM
  */
-function handleOutput(mode, lastSentences, lastSentence, lastAssistantAnswer) {
-    txtOutput.innerHTML += `\n<hr><strong>An Agent</strong> will analyze the following text: <i>${lastSentence}</i> with mode <i>${mode}</i>`;
+function handleOutput(mode, language, lastSentences, lastSentence, lastAssistantAnswer) {
 
     if (mode === '') {
         txtOutput.innerHTML = '<font color="red">Please select a mode first</font>';
         return '';
     }
 
+    // Trsscription Mode: Only show the transcribed text.
+    if (mode === 'transcription') {
+        txtOutput.innerHTML += `<hr><strong>${mode} in ${language}:</strong> ${lastSentence}`;
+        return lastSentence;
+    }
+
+    txtOutput.innerHTML += `\n<hr><strong>An Agent</strong> will analyze the following text: <i>${lastSentence}</i> with mode <i>${mode}</i>`;    
+
     if (mode === 'translate') {
         const agent = 'listener';
-        // queryLLM calls the appropriate endpoint and builds the required prompts based on the mode and agent
+        queryLLM(mode, agent, lastSentence, (error, response) => {
+            if (error) {
+                console.error('LLM error:', error);
+            } else {
+                txtOutput.innerHTML += `<hr><strong>${mode}:</strong><br>${response.replace(/\n/g, '<br>')}`;
+                return response;
+            }
+        });
+    }
+
+    if (mode === 'presentation') {
+        const agent = 'listener';
         queryLLM(mode, agent, lastSentence, (error, response) => {
             if (error) {
                 console.error('LLM error:', error);

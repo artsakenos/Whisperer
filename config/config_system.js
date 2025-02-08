@@ -1,22 +1,20 @@
 window.config_system = {
-    agents: {
-        listener: {
-            provider: "deepseek",
+    providers: {
+        deepseek: {
             url: "https://api.deepseek.com/chat/completions",
             model: "deepseek-chat",
-            api_key: null,
         },
-        generator: {
-            provider: "groq",
+        groq: {
             url: "https://api.groq.com/openai/v1/chat/completions",
             model: "llama-3.3-70b-versatile",
-            api_key: null,
         },
-        tester: {
-            provider: "groq",
-            url: "https://api.groq.com/openai/v1/chat/completions",
-            model: "llama-3.3-70b-versatile",
-            api_key: null,
+        cerebras: {
+            url: "https://api.cerebras.ai/v1/chat/completions",
+            model: "llama-3.3-70b",
+        },
+        openai: {
+            url: "https://api.openai.com/v1/chat/completions",
+            model: "gpt-3.5-turbo",
         }
     },
     language: "it-IT",

@@ -11,11 +11,22 @@ let lastTranscripts = [];
 let lastTranscriptTime = Date.now();
 let lastAssistantAnswer = '';
 
+let isRecognitionActive = false;
+
+function log_error(verbose, error) {
+    txtOutput.innerHTML += `<font color=red>${verbose}:</font>>${JSON.stringify(error)}<br>`;
+    txtOutput.scrollTop = txtOutput.scrollHeight;
+    console.error(verbose, error);
+}
+
 function setupRecognition() {
+    keepAudioAlive();
     recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = cmbLanguage.value || 'en-US';
+    cmbLanguage.disabled = true;
     recognition.continuous = true;
     recognition.interimResults = true;
+    console.log(`Recognition Started with language ${recognition.lang}, and mode ${cmbMode.value}`);
 
     recognition.onresult = (event) => {
         let interimTranscript = '';
@@ -36,15 +47,21 @@ function setupRecognition() {
             }
         }
 
-        handleTranscription(interimTranscript, finalTranscript);
+        handleTranscription(interimTranscript, finalTranscript, recognition.lang);
     };
 
     recognition.onerror = (event) => {
-        console.error(`Error: ${event.error}`);
+        log_error('Recognition Error', event.error);
     };
+
+    recognition.onend = () => {
+        console.warn('Recognition ended.');
+        if (isRecognitionActive) startMicRecognition(); // WebAPI decided to close, not the user, so: Force restart.
+    };
+
 }
 
-function handleTranscription(interim, final) {
+function handleTranscription(interim, final, language) {
     edtTranscription.value = `Interim: ${interim}\nFinal: ${final}`.trim();
     edtTranscription.scrollTop = edtTranscription.scrollHeight;
 
@@ -56,7 +73,7 @@ function handleTranscription(interim, final) {
     // txtOutput.innerHTML += `<strong>Last Transcripts:</strong><br>${lastTranscripts.join('<br>')}`;
     // txtOutput.scrollTop = txtOutput.scrollHeight;
 
-    lastAssistantAnswer = handleOutput(cmbMode.value, lastTranscripts, final, lastAssistantAnswer);
+    lastAssistantAnswer = handleOutput(cmbMode.value, language, lastTranscripts, final, lastAssistantAnswer);
 }
 
 async function startMicRecognition() {
@@ -66,15 +83,16 @@ async function startMicRecognition() {
         recognition.start();
         btnMic.textContent = window.config_system.labels["en-US"].btn_mic_off;
         btnMic.onclick = stopRecognition;
+        isRecognitionActive = true;
     } catch (error) {
-        console.error('Microphone access error:', error);
+        log_error('Microphone Access Error', error);
+        cmbLanguage.disabled = false;
     }
 }
 
 async function startSystemRecognition() {
     try {
         if (!recognition) setupRecognition();
-
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: true,
             audio: {
@@ -96,19 +114,23 @@ async function startSystemRecognition() {
             audioTrack.stop();
             stopRecognition();
         };
+        isRecognitionActive = true;
 
     } catch (error) {
-        console.error('System audio access error:', error);
+        log_error('System Audio access error:', error);
+        cmbLanguage.disabled = false;
     }
 }
 
 function stopRecognition() {
+    isRecognitionActive = false;
     if (recognition) {
         recognition.stop();
         btnMic.textContent = window.config_system.labels["en-US"].btn_mic_on;
         btnMic.onclick = startMicRecognition;
         btnSystem.textContent = window.config_system.labels["en-US"].btn_system_on;
         btnSystem.onclick = startSystemRecognition;
+        cmbLanguage.disabled = false;
     }
 }
 
@@ -116,3 +138,25 @@ function cleanOutput() {
     edtTranscription.value = '';
     txtOutput.innerHTML = '';
 }
+
+/**
+ * A limitation on the Web Speech API can close the Microphone after an inactivity timeout.
+ * This function creates an audio context with a silent oscillator to keep the microphone alive.
+ * There are other ways, but they all have shortcomings.
+ */
+function keepAudioAlive() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 440;
+    gainNode.gain.value = 0.001; // La frequenza è arbitraria, il volume molto basso.
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start();
+    console.log("Audio context started to prevent timeout.");
+}
+
