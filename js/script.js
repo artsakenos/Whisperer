@@ -11,7 +11,7 @@ let lastTranscripts = [];
 let lastTranscriptTime = Date.now();
 let lastAssistantAnswer = '';
 
-let isRecognitionActive = false;
+let recognitionStatus = "off"; // off | microphone | system
 
 function log_error(verbose, error) {
     txtOutput.innerHTML += `<font color=red>${verbose}:</font>>${JSON.stringify(error)}<br>`;
@@ -37,7 +37,7 @@ function setupRecognition() {
             const transcript = event.results[i][0].transcript.trim();
 
             if (event.results[i].isFinal ||
-                // currentTime - lastTranscriptTime > 10000 ||
+                (currentTime - lastTranscriptTime) > 10000 ||
                 transcript.length > 200) {
 
                 finalTranscript += transcript + '\n';
@@ -56,7 +56,9 @@ function setupRecognition() {
 
     recognition.onend = () => {
         console.warn('Recognition ended.');
-        if (isRecognitionActive) startMicRecognition(); // WebAPI decided to close, not the user, so: Force restart.
+        // if WebAPI decided to close, not the user I force a restart.
+        if (recognitionStatus === 'microphone') startMicRecognition();
+        if (recognitionStatus === 'system') startSystemRecognition();
     };
 
 }
@@ -83,7 +85,7 @@ async function startMicRecognition() {
         recognition.start();
         btnMic.textContent = window.config_system.labels["en-US"].btn_mic_off;
         btnMic.onclick = stopRecognition;
-        isRecognitionActive = true;
+        recognitionStatus = 'microphone';
     } catch (error) {
         log_error('Microphone Access Error', error);
         cmbLanguage.disabled = false;
@@ -114,7 +116,7 @@ async function startSystemRecognition() {
             audioTrack.stop();
             stopRecognition();
         };
-        isRecognitionActive = true;
+        recognitionStatus = 'system';
 
     } catch (error) {
         log_error('System Audio access error:', error);
@@ -125,12 +127,14 @@ async function startSystemRecognition() {
 function stopRecognition() {
     isRecognitionActive = false;
     if (recognition) {
+        recognitionStatus = 'off';
         recognition.stop();
         btnMic.textContent = window.config_system.labels["en-US"].btn_mic_on;
         btnMic.onclick = startMicRecognition;
         btnSystem.textContent = window.config_system.labels["en-US"].btn_system_on;
         btnSystem.onclick = startSystemRecognition;
         cmbLanguage.disabled = false;
+        recognition = null;
     }
 }
 

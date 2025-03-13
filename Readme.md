@@ -41,7 +41,7 @@ and open `index.html`.
 ## Macro Architecture 🏗️
 
 This application is intentionally designed to run standalone locally, without ES6 modules and the need for a server. 
-For a handsome browser navigation assistant, see [Browser Mc Winspan](https://github.com/artsakenos/BrowserMcWingspan).
+For a handsome browser navigation assistant, see [Browser McWingspan](https://github.com/artsakenos/BrowserMcWingspan).
 
 ### Speech Processing
 - **Collection and Segmentation**: Select the audio channel as needed. 
@@ -67,31 +67,45 @@ The Assistant supports multiple assistance modes. Based on the mode, it performs
 
 ## Credits 🙏
 * [Browser McWingspan](https://github.com/artsakenos/BrowserMcWingspan)
-* [Ai Interview Assistant](https://github.com/pixelpump/Ai-Interview-Assistant-Chrome-Extension)
+* [AI Interview Assistant](https://github.com/pixelpump/Ai-Interview-Assistant-Chrome-Extension)
 * Powered by [Groq](https://groq.com/), [Cerebras](https://cerebras.ai/), [OpenAI](https://labs.openai.com/), et al.
 
 ---
 🚧 Under Active Development - Watch this space! 👀
 
 
-## Test LLM ⚗️
+# Code Tweaks ⚗️
+
+## js/llm.js
+
+Declares the functions to query LLM.
 
 To test if your LLM endpoint is OK you can
-1. Setup the *tester agent* paramenters
-2. Launch this command on the console
-
+1. Setup the *tester agent* parameters in [config](./config/config_prompts.js)
+2. Export the function globally for testing `window.queryLLM = queryLLM;`
+3. Launch this command on the console:
 ```js
 queryLLM("test", "listener", "How is life today?", (error, response) => {
     if (error) {
-        console.error("Errore:", error);
+        console.error("Error:", error);
     } else {
-        console.log("Risposta:", response);
+        console.log("Response:", response);
     }
 });
 ```
-
 According to the prompt in config_prompts.js a Spanish comedian will answer.
 
-## TODO 🗺️
+## js/agents.js
+
+Handles the business logics of the agents.
+
+Check the function `handleOutput` and use its parameters to make the agent behave.
+
+## js/script.js
+
+Handler the microphone events.
+
+
+# TODO 🗺️
 - [ ] Refine prompts and add a personal CV to the context window
 - [ ] Aggiungere un caso d'uso presentazione, durante la quale fornisce esempi e suggerimenti

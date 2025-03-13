@@ -70,5 +70,5 @@ async function queryLLM(mode, agentName, userInput, callback) {
     }
 }
 
-// Esponi la funzione globalmente per i test:
+// Export the function globally for testing:
 // window.queryLLM = queryLLM;
