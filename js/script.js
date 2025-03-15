@@ -1,9 +1,9 @@
-const edtTranscription = document.getElementById('edt_transcription');
 const btnMic = document.getElementById('btn_mic');
 const btnSystem = document.getElementById('btn_system');
 const btnClean = document.getElementById('btn_clean');
 const cmbLanguage = document.getElementById('cmb_language');
 const cmbMode = document.getElementById('cmb_mode');
+const txtStatus = document.getElementById('txt_status');
 const txtOutput = document.getElementById('txt_output');
 
 let recognition = null;
@@ -12,6 +12,8 @@ let lastTranscriptTime = Date.now();
 let lastAssistantAnswer = '';
 
 let recognitionStatus = "off"; // off | microphone | system
+
+txtOutput.innerHTML = window.config_system.help['en-US'];
 
 function log_error(verbose, error) {
     txtOutput.innerHTML += `<font color=red>${verbose}:</font>>${JSON.stringify(error)}<br>`;
@@ -64,8 +66,9 @@ function setupRecognition() {
 }
 
 function handleTranscription(interim, final, language) {
-    edtTranscription.value = `Interim: ${interim}\nFinal: ${final}`.trim();
-    edtTranscription.scrollTop = edtTranscription.scrollHeight;
+    txtStatus.innerHTML = `<strong>Interim:</strong> ${interim}`;
+    // <p><strong>Final:</strong> ${final}</p>`;
+    // txtStatus.scrollTop = txtStatus.scrollHeight;
 
     if (final.trim().length === 0) return;
     lastTranscripts.push(final);
@@ -168,7 +171,7 @@ function stopRecognition() {
 }
 
 function cleanOutput() {
-    edtTranscription.value = '';
+    txtStatus.value = '';
     txtOutput.innerHTML = '';
 }
 

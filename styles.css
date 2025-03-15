@@ -52,3 +52,8 @@ body {
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+#user_input {
+    height: 80px; /* Imposta un'altezza maggiore */
+    resize: none; /* Impedisce il ridimensionamento */
+}
