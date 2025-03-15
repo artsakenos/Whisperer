@@ -1,6 +1,5 @@
 const config_system = window.config_system; // Loaded from config_system.js
 const config_prompts = window.prompt; // Loaded from config_prompts.js
-
 const max_completion_tokens = 512;
 
 /**

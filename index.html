@@ -19,21 +19,21 @@
 
         <button id="btn_mic" class="btn btn-primary" onclick="startMicRecognition()">🎙️ Listen Microphone</button>
         <button id="btn_system" class="btn btn-secondary" onclick="startSystemRecognition()">🔊 Listen System</button>
-        <button id="btn_clean" class="btn btn-danger" onclick="cleanOutput()">🧹 Cleanup</button>
+        <button id="btn_clean" class="btn btn-danger" onclick="cleanup()">🧹 Cleanup</button>
 
-        <select id="cmb_language" class="form-select">
+        <select id="cmb_language" class="form-select" onchange="cleanup(false)">
             <option value="en-US" selected>🌐 Language</option>
             <option value="it-IT">🇮🇹 Italiano</option>
             <option value="en-US">🇺🇸 English</option>
             <option value="zh-CN">🇨🇳 中文</option>
         </select>
 
-        <select id="cmb_mode" class="form-select">
+        <select id="cmb_mode" class="form-select" onchange="cleanup(false)">
             <option value="transcription" selected>⚙️ Mode</option>
             <option value="transcription">✍ Transcription</option>
             <option value="interview">💼 Interview</option>
             <option value="translate">📜 Translator</option>
-            <option value="lifecoach">🧠 Life Coach</option>
+            <option value="brainstorming">🧠 Brainstorming</option>
             <option value="presentation">👥 Presentation</option>
             <option value="phonecall">📞 Phone Call</option>
         </select>
@@ -41,7 +41,7 @@
         <button id="btn_action" class="btn btn-warning">🚀 Action</button>
 
         <div class="input-section">
-            <textarea id="edt_user" class="form-control" placeholder="Type your command, or /help"></textarea>
+            <textarea id="edt_input" class="form-control" placeholder="Type your command, or /help"></textarea>
             <button id="btn_send" class="btn btn-success">📩 Send</button>
         </div>
 
@@ -56,9 +56,9 @@
     <script src="./config/config_system.js"></script>
     <script src="./config/config_user.js"></script>
     <script src="./config/config_prompts.js"></script>
+    <script src="./js/audio.js"></script>
     <script src="./js/llm.js"></script>
     <script src="./js/script.js"></script>
-    <script src="./js/agents.js"></script>
 </body>
 
 </html>

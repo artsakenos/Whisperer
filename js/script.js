@@ -1,19 +1,13 @@
 const btnMic = document.getElementById('btn_mic');
 const btnSystem = document.getElementById('btn_system');
 const btnClean = document.getElementById('btn_clean');
+const btnSend = document.getElementById('btn_send');
+
 const cmbLanguage = document.getElementById('cmb_language');
 const cmbMode = document.getElementById('cmb_mode');
 const txtStatus = document.getElementById('txt_status');
 const txtOutput = document.getElementById('txt_output');
-
-let recognition = null;
-let lastTranscripts = [];
-let lastTranscriptTime = Date.now();
-let lastAssistantAnswer = '';
-
-let recognitionStatus = "off"; // off | microphone | system
-
-txtOutput.innerHTML = window.config_system.help['en-US'];
+const edtUserInput = document.getElementById('edt_input');
 
 function log_error(verbose, error) {
     txtOutput.innerHTML += `<font color=red>${verbose}:</font>>${JSON.stringify(error)}<br>`;
@@ -21,178 +15,150 @@ function log_error(verbose, error) {
     console.error(verbose, error);
 }
 
-function setupRecognition() {
-    keepAudioAlive();
-    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = cmbLanguage.value || 'en-US';
-    cmbLanguage.disabled = true;
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    console.log(`Recognition Started with language ${recognition.lang}, and mode ${cmbMode.value}`);
+function cleanup(cleanOutput = true) {
+    let language = cmbLanguage.value || 'en-US';
+    let mode = cmbMode.value || 'transcription';
+    txtStatus.innerHTML = "🔍 Status: Ready; Language: " + language + "; Mode: " + mode + ";";
+    if (cleanOutput)
+        // txtOutput.innerHTML = window.config_system.help["en-US"];
+        txtOutput.innerHTML = "📄 Ready...";
+}
 
-    recognition.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
-        const currentTime = Date.now();
+btnSend.addEventListener("click", function () {
+    const value = edtUserInput.value;
+    let language = cmbLanguage.value || 'en-US';
+    let mode = cmbMode.value || 'transcription';
+    lastAssistantAnswer = handleOutput(mode, language, lastTranscripts, value, lastAssistantAnswer);
+    edtUserInput.value = '';
+});
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript.trim();
+let recognition = null;
+let lastTranscripts = []; // Contains the last 5 transcripts, check handleTranscription.
+let lastTranscriptTime = Date.now();
+let lastAssistantAnswer = '';
+cleanup();
 
-            if (event.results[i].isFinal ||
-                (currentTime - lastTranscriptTime) > 10000 ||
-                transcript.length > 200) {
+/**
+ * The handleOutput function queries the appropriate agents based on the current transcript of the conversation.
+ * It uses the queryLLM function, which selects the correct prompt depending on the current mode 
+ * and the agent responsible for the response.
+ * The flow may vary depending on the selected mode.
+ * <i>queryLLM(...)</i> calls the appropriate endpoint and builds the required prompts based on the mode and agent.
+ *
+ * @param {string} mode The current mode (e.g., interview, translate, etc.)
+ * @param {string} language The current language (e.g., it-IT, en-US, etc.)
+ * @param {array} lastSentences An array containing the most recent transcripted sentences
+ * @param {string} lastSentence The latest transcripted sentence
+ * @param {string} lastAssistantAnswer The last response provided by the assistant
+ *  (This is useful to avoid calling the LLM or changing the response if the assistant's answer hasn't changed)
+ * @returns {string} The response from the LLM
+ */
+function handleOutput(mode, language, lastSentences, lastSentence, lastAssistantAnswer) {
 
-                finalTranscript += transcript + '\n';
-                lastTranscriptTime = currentTime;
+    if (mode === '') {
+        txtOutput.innerHTML = '<font color="red">Please select a mode first</font>';
+        return '';
+    }
+
+    // Trsscription Mode: Only show the transcribed text.
+    if (mode === 'transcription') {
+        txtOutput.innerHTML += `<hr><strong>${mode} in ${language}:</strong> ${lastSentence}`;
+        return lastSentence;
+    }
+
+    txtOutput.innerHTML += `\n<hr><strong>An Agent</strong> will analyze the following text: <i>${lastSentence}</i> with mode <i>${mode}</i>`;
+
+    if (mode === 'translate') {
+        const agent = 'listener';
+        queryLLM(mode, agent, lastSentence, (error, response) => {
+            if (error) {
+                console.error('LLM error:', error);
             } else {
-                interimTranscript += transcript;
+                txtOutput.innerHTML += `<hr><strong>${mode}:</strong><br>${response.replace(/\n/g, '<br>')}`;
+                return response;
             }
-        }
-
-        handleTranscription(interimTranscript, finalTranscript, recognition.lang);
-    };
-
-    recognition.onerror = (event) => {
-        log_error('Recognition Error', event.error);
-    };
-
-    recognition.onend = () => {
-        console.warn('Recognition ended.');
-        // if WebAPI decided to close, not the user I force a restart.
-        if (recognitionStatus === 'microphone') startMicRecognition();
-        if (recognitionStatus === 'system') startSystemRecognition();
-    };
-
-}
-
-function handleTranscription(interim, final, language) {
-    txtStatus.innerHTML = `<strong>Interim:</strong> ${interim}`;
-    // <p><strong>Final:</strong> ${final}</p>`;
-    // txtStatus.scrollTop = txtStatus.scrollHeight;
-
-    if (final.trim().length === 0) return;
-    lastTranscripts.push(final);
-    if (lastTranscripts.length > 5) lastTranscripts.shift();
-
-    // txtOutput.innerHTML = `<strong>Final:</strong> ${final}<hr>`;
-    // txtOutput.innerHTML += `<strong>Last Transcripts:</strong><br>${lastTranscripts.join('<br>')}`;
-    // txtOutput.scrollTop = txtOutput.scrollHeight;
-
-    lastAssistantAnswer = handleOutput(cmbMode.value, language, lastTranscripts, final, lastAssistantAnswer);
-}
-
-async function startMicRecognition() {
-    try {
-        if (!recognition) setupRecognition();
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        recognition.start();
-        btnMic.textContent = window.config_system.labels["en-US"].btn_mic_off;
-        btnMic.onclick = stopRecognition;
-        recognitionStatus = 'microphone';
-    } catch (error) {
-        log_error('Microphone Access Error', error);
-        cmbLanguage.disabled = false;
-    }
-}
-
-async function startSystemRecognition() {
-    try {
-        if (!recognition) setupRecognition();
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: true // Richiesta semplificata per l'audio
         });
-
-        // Verifica se c'è un audio track
-        const audioTracks = stream.getAudioTracks();
-        if (audioTracks.length === 0) {
-            throw new Error('No audio track available in the system stream');
-        }
-
-        console.log('System audio track obtained:', audioTracks[0].label);
-        txtOutput.innerHTML += `<br>Audio system selected: ${audioTracks[0].label}<br>`;
-
-        // Ferma le tracce video, manteniamo solo l'audio
-        stream.getVideoTracks().forEach(track => track.stop());
-
-        // Aggiungiamo un semplice verificatore dello stato dell'audio
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        source.connect(analyser);
-
-        // Buffer per analizzare i dati audio
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        // Controllo periodico che l'audio stia fluendo
-        const audioCheckInterval = setInterval(() => {
-            analyser.getByteFrequencyData(dataArray);
-            const average = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-            console.log('Audio level:', average);
-
-            /* Possibile indicatore visivo del livello audio
-            const indicator = document.createElement('div');
-            indicator.style.width = '100%';
-            indicator.style.height = '5px';
-            indicator.style.backgroundColor = average > 5 ? 'green' : 'red';
-            if (txtOutput.childElementCount > 50) txtOutput.removeChild(txtOutput.firstChild);
-            txtOutput.appendChild(indicator);
-            */
-        }, 1000);
-
-        recognition.start();
-        btnSystem.textContent = window.config_system.labels["en-US"].btn_system_off;
-        btnSystem.onclick = () => {
-            clearInterval(audioCheckInterval);
-            audioTracks.forEach(track => track.stop());
-            stopRecognition();
-        };
-        recognitionStatus = 'system';
-
-    } catch (error) {
-        log_error('System Audio access error:', error);
-        cmbLanguage.disabled = false;
     }
-}
 
-function stopRecognition() {
-    recognitionStatus = 'off';
-    if (recognition) {
-        recognition.stop();
-        btnMic.textContent = window.config_system.labels["en-US"].btn_mic_on;
-        btnMic.onclick = startMicRecognition;
-        btnSystem.textContent = window.config_system.labels["en-US"].btn_system_on;
-        btnSystem.onclick = startSystemRecognition;
-        cmbLanguage.disabled = false;
-        recognition = null;
+    if (mode === 'presentation') {
+        const agent = 'listener';
+        queryLLM(mode, agent, lastSentence, (error, response) => {
+            if (error) {
+                console.error('LLM error:', error);
+            } else {
+                txtOutput.innerHTML += `<hr><strong>${mode}:</strong><br>${response.replace(/\n/g, '<br>')}`;
+                return response;
+            }
+        });
     }
-}
 
-function cleanOutput() {
-    txtStatus.value = '';
-    txtOutput.innerHTML = '';
+    if (mode === 'interview') {
+        const agentListener = 'listener';
+        const agentGenerator = 'generator';
+
+        // Call the listener agent to analyze the transcript and classify it
+        queryLLM(mode, agentListener, lastSentence, (error, listenerResponse) => {
+            if (error) {
+                console.error('Listener LLM error:', error);
+            } else {
+                // Parse the response from the Listener
+                txtOutput.innerHTML += `<hr><strong>Listener Response:</strong><br>${listenerResponse.replace(/\n/g, '<br>')}`;
+
+                // Extract key elements from Listener response
+                const classificationTag = extractClassificationTag(listenerResponse); // Function to parse #category tag
+                const structuredInput = extractStructuredInput(listenerResponse); // Extract the structured details
+
+                if (!classificationTag || !structuredInput) {
+                    console.error('Failed to parse Listener response');
+                    return;
+                }
+
+                // Avoid regenerating a suggestion if the context is unchanged
+                if (lastAssistantAnswer && lastAssistantAnswer.includes(structuredInput.SUMMARY)) {
+                    txtOutput.innerHTML += `<hr><strong>Suggestion unchanged:</strong> The current answer still applies.`;
+                    return;
+                }
+
+                // Call the generator agent to create a response based on the Listener's structured input
+                queryLLM(mode, agentGenerator, JSON.stringify(structuredInput), (genError, generatorResponse) => {
+                    if (genError) {
+                        console.error('Generator LLM error:', genError);
+                    } else {
+                        txtOutput.innerHTML = `<hr><strong>Generated Response:</strong><br>${generatorResponse.replace(/\n/g, '<br>')}`;
+                        return generatorResponse;
+                    }
+                });
+            }
+        });
+    }
 }
 
 /**
- * A limitation on the Web Speech API can close the Microphone after an inactivity timeout.
- * This function creates an audio context with a silent oscillator to keep the microphone alive.
- * There are other ways, but they all have shortcomings.
+ * Utility to extract the classification tag (e.g., #personal, #technical) from the Listener response.
+ * @param {string} response - The response from the Listener agent.
+ * @returns {string|null} The classification tag or null if not found.
  */
-function keepAudioAlive() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 440;
-    gainNode.gain.value = 0.001; // La frequenza è arbitraria, il volume molto basso.
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.start();
-    console.log("Audio context started to prevent timeout.");
+function extractClassificationTag(response) {
+    const match = response.match(/#\w+/);
+    return match ? match[0] : null;
 }
 
+/**
+ * Utility to extract the structured details (TOPIC, SUMMARY, KEY POINTS) from the Listener response.
+ * @param {string} response - The response from the Listener agent.
+ * @returns {object|null} An object containing structured details or null if parsing fails.
+ */
+function extractStructuredInput(response) {
+    const topicMatch = response.match(/TOPIC:\s*(.*)/i);
+    const summaryMatch = response.match(/SUMMARY:\s*(.*)/i);
+    const keyPointsMatch = response.match(/KEY POINTS:\s*([\s\S]*)/i);
+
+    if (topicMatch && summaryMatch && keyPointsMatch) {
+        return {
+            TOPIC: topicMatch[1].trim(),
+            SUMMARY: summaryMatch[1].trim(),
+            KEY_POINTS: keyPointsMatch[1].trim()
+        };
+    }
+    return null;
+}

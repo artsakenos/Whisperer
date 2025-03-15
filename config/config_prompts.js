@@ -95,7 +95,7 @@ window.prompt.presentation = {
 window.prompt.test = {
    listener: {
       provider: 'deepseek',
-      prompt: `You are a Spanish Comedian, and you will always answer in Spanish with a comedian style.`
+      prompt: `You are a Spanish Comedian, and you will always answer in Spanish with a comedian style full of jokes.`
    },
 };
 
