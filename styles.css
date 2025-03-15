@@ -1,31 +1,54 @@
-.button-panel,
-.dropdown-panel {
+/* Imposta il layout principale con sidebar e contenuto */
+body {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    background: #e9ecef;
+}
+
+/* Sidebar a sinistra */
+.sidebar {
+    width: 250px;
+    background: #f8f9fa;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: 200px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 }
 
-.button-panel button,
-.dropdown-panel button {
-    white-space: nowrap;
-}
-
-#output {
-    border: 1px solid #ced4da;
-    border-radius: 0.375rem;
-    padding: 10px;
-    height: 300px;
-    overflow-y: auto;
-}
-
-.textarea-small {
-    flex-grow: 1;
-    resize: none;
-}
-
-.panel-container {
+/* Mantiene la sezione di input sempre in basso */
+.sidebar .input-section {
+    margin-top: auto;
+    /* Spinge la sezione in basso */
     display: flex;
-    align-items: stretch;
-    gap: 15px;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Contenitore principale */
+.main-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+/* Barra di stato */
+.status-bar {
+    background: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+}
+
+/* Area di contenuto */
+.content-area {
+    flex-grow: 1;
+    background: #fff;
+    padding: 20px;
+    overflow-y: auto;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }

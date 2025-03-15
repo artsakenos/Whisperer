@@ -1,5 +1,5 @@
 window.config_system = {
-    providers: {
+    providers: { // Available Providers. Implement their wrapper in llm.js.
         deepseek: {
             url: "https://api.deepseek.com/chat/completions",
             model: "deepseek-chat",
@@ -17,7 +17,7 @@ window.config_system = {
             model: "gpt-3.5-turbo",
         }
     },
-    language: "it-IT",
+    language: "en-US", // Default Language
     labels: {
         "en-US": {
             btn_mic_on: "🎙️ Listen Microphone",

@@ -97,23 +97,53 @@ async function startSystemRecognition() {
         if (!recognition) setupRecognition();
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                sampleRate: 44100,
-                channelCount: 2
-            }
+            audio: true // Richiesta semplificata per l'audio
         });
 
-        const audioTrack = stream.getAudioTracks()[0];
-        if (!audioTrack) throw new Error('No audio track available');
+        // Verifica se c'è un audio track
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length === 0) {
+            throw new Error('No audio track available in the system stream');
+        }
 
+        console.log('System audio track obtained:', audioTracks[0].label);
+        txtOutput.innerHTML += `<br>Audio system selected: ${audioTracks[0].label}<br>`;
+
+        // Ferma le tracce video, manteniamo solo l'audio
         stream.getVideoTracks().forEach(track => track.stop());
+
+        // Aggiungiamo un semplice verificatore dello stato dell'audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+
+        // Buffer per analizzare i dati audio
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        // Controllo periodico che l'audio stia fluendo
+        const audioCheckInterval = setInterval(() => {
+            analyser.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
+            console.log('Audio level:', average);
+
+            /* Possibile indicatore visivo del livello audio
+            const indicator = document.createElement('div');
+            indicator.style.width = '100%';
+            indicator.style.height = '5px';
+            indicator.style.backgroundColor = average > 5 ? 'green' : 'red';
+            if (txtOutput.childElementCount > 50) txtOutput.removeChild(txtOutput.firstChild);
+            txtOutput.appendChild(indicator);
+            */
+        }, 1000);
 
         recognition.start();
         btnSystem.textContent = window.config_system.labels["en-US"].btn_system_off;
         btnSystem.onclick = () => {
-            audioTrack.stop();
+            clearInterval(audioCheckInterval);
+            audioTracks.forEach(track => track.stop());
             stopRecognition();
         };
         recognitionStatus = 'system';
@@ -125,9 +155,8 @@ async function startSystemRecognition() {
 }
 
 function stopRecognition() {
-    isRecognitionActive = false;
+    recognitionStatus = 'off';
     if (recognition) {
-        recognitionStatus = 'off';
         recognition.stop();
         btnMic.textContent = window.config_system.labels["en-US"].btn_mic_on;
         btnMic.onclick = startMicRecognition;

@@ -107,5 +107,5 @@ Handler the microphone events.
 
 
 # TODO 🗺️
-- [ ] Refine prompts and add a personal CV to the context window
+- [ ] Refine the prompts and add a personal CV to the context window
 - [ ] Aggiungere un caso d'uso presentazione, durante la quale fornisce esempi e suggerimenti
