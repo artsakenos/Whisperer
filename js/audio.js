@@ -1,4 +1,6 @@
 let recognitionStatus = "off"; // off | microphone | system
+let mediastream = null; // Store the media stream globally
+let recognition = null; // Store the Recognition
 
 function setupRecognition() {
     keepAudioAlive();
@@ -20,7 +22,6 @@ function setupRecognition() {
             if (event.results[i].isFinal ||
                 (currentTime - lastTranscriptTime) > 10000 ||
                 transcript.length > 200) {
-
                 finalTranscript += transcript + '\n';
                 lastTranscriptTime = currentTime;
             } else {
@@ -62,9 +63,10 @@ function handleTranscription(interim, final, language) {
 
 async function startMicRecognition() {
     try {
+        if (!mediastream) mediastream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (!recognition) setupRecognition();
-        await navigator.mediaDevices.getUserMedia({ audio: true });
         recognition.start();
+
         btnMic.textContent = window.config_system.labels["en-US"].btn_mic_off;
         btnMic.onclick = stopRecognition;
         recognitionStatus = 'microphone';
@@ -79,7 +81,7 @@ async function startSystemRecognition() {
         if (!recognition) setupRecognition();
         const stream = await navigator.mediaDevices.getDisplayMedia({
             video: true,
-            audio: true // Richiesta semplificata per l'audio
+            audio: true
         });
 
         // Verifica se c'è un audio track
@@ -136,7 +138,7 @@ async function startSystemRecognition() {
     }
 }
 
-function stopRecognition() {
+function stopRecognition(event, force = false) {
     recognitionStatus = 'off';
     if (recognition) {
         recognition.stop();
@@ -145,7 +147,10 @@ function stopRecognition() {
         btnSystem.textContent = window.config_system.labels["en-US"].btn_system_on;
         btnSystem.onclick = startSystemRecognition;
         cmbLanguage.disabled = false;
-        recognition = null;
+        if (force) {
+            recognition = null;
+            mediastream = null;
+        }
         cleanup(false);
     }
 }

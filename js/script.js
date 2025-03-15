@@ -24,6 +24,20 @@ function cleanup(cleanOutput = true) {
         txtOutput.innerHTML = "📄 Ready...";
 }
 
+/**
+ * Shortcut CTRL+'\'
+ */
+document.addEventListener('keydown', function (event) {
+    if (event.ctrlKey && event.key === '\\') {
+        event.preventDefault();
+        if (recognitionStatus === 'off') {
+            startMicRecognition();
+        } else {
+            stopRecognition();
+        }
+    }
+});
+
 btnSend.addEventListener("click", function () {
     const value = edtUserInput.value;
     let language = cmbLanguage.value || 'en-US';
@@ -32,7 +46,6 @@ btnSend.addEventListener("click", function () {
     edtUserInput.value = '';
 });
 
-let recognition = null;
 let lastTranscripts = []; // Contains the last 5 transcripts, check handleTranscription.
 let lastTranscriptTime = Date.now();
 let lastAssistantAnswer = '';
