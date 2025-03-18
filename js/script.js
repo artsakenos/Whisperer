@@ -46,6 +46,17 @@ btnSend.addEventListener("click", function () {
     edtUserInput.value = '';
 });
 
+edtUserInput.addEventListener("keydown", function (event) {
+    if (event.ctrlKey && event.key === "Enter") {
+        event.preventDefault(); // Impedisce l'inserimento di una nuova riga nell'area di testo
+        const value = edtUserInput.value;
+        let language = cmbLanguage.value || 'en-US';
+        let mode = cmbMode.value || 'transcription';
+        lastAssistantAnswer = handleOutput(mode, language, lastTranscripts, value, lastAssistantAnswer);
+        edtUserInput.value = '';
+    }
+});
+
 let lastTranscripts = []; // Contains the last 5 transcripts, check handleTranscription.
 let lastTranscriptTime = Date.now();
 let lastAssistantAnswer = '';
@@ -70,6 +81,39 @@ function handleOutput(mode, language, lastSentences, lastSentence, lastAssistant
 
     if (mode === '') {
         txtOutput.innerHTML = '<font color="red">Please select a mode first</font>';
+        return '';
+    }
+
+    if (!lastSentence || lastSentence === '') {
+        return '';
+    }
+
+    if (lastSentence.toLowerCase() === '/help') {
+        // Open the web page https://github.com/artsakenos/Whisperer inanother tab
+        window.open('https://github.com/artsakenos/Whisperer', '_blank');
+        return '';
+    }
+
+    if (lastSentence.startsWith('/config')) {
+        const parts = lastSentence.split(' ');
+        // If config has one parameter get the value of that parameter.
+        if (parts.length === 2) {
+            const key = parts[1];
+            const value = config_get(key);
+            if (value !== undefined) {
+                txtOutput.innerHTML += `<br> <b>${key}</b> has value <i>${JSON.stringify(value)}</i>`;
+            } else {
+                txtOutput.innerHTML += `<br> <b>${key}</b> not found.`;
+            }
+            // If config has two or more parameters, the first parameter is a key and the rest is the value and the config will be set as that.
+        } else if (parts.length >= 3) {
+            const key = parts[1];
+            const value = parts.slice(2).join(' ');
+            config_set(key, value);
+            txtOutput.innerHTML += `<br> <b>${key}</b> set to <i>${value}</i>`;
+        } else {
+            txtOutput.innerHTML += "<br>Usage: /config [key] (to read [key]) or /config [key] [value] (to set [key] with [value])";
+        }
         return '';
     }
 

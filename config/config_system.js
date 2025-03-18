@@ -44,7 +44,8 @@ function getNestedProperty(obj, path, defaultValue) {
     return path.split('.').reduce((o, key) => (o && o[key] !== undefined) ? o[key] : undefined, obj) ?? defaultValue;
 }
 
-function config_get(key, defaultValue) {
+// e.g., config_get('providers.deepseek');
+function config_get(key, defaultValue = null) {
     if (localStorage.getItem(key) !== null) {
         return JSON.parse(localStorage.getItem(key));
     }
@@ -55,6 +56,9 @@ function config_get(key, defaultValue) {
     return defaultValue;
 }
 
+/**
+ * Note that the key will be saved in a flattened way to the local storage.
+ */
 function config_set(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
 }
