@@ -1,7 +1,37 @@
 const config_system = window.config_system; // Loaded from config_system.js
-const config_prompts = window.prompt; // Loaded from config_prompts.js
+const config_prompts = window.config_prompts; // Loaded from config_prompts.js
 
 const max_completion_tokens = 512;
+
+function retrieveAgent(mode, lastTranscripts, userInput, lastAssistantAnswer) {
+    const agentWorkflow = config_prompts[mode]; // The Agent Workflow. Has provider and prompts.
+    const provider = agentWorkflow.provider; // Contains the provider url and model
+    const model = config_get("providers." + provider + ".model");
+    const url = config_get("providers." + provider + ".url");
+    const apiKey = config_get("providers." + provider + ".api_key");
+
+    const prompt_system = agentWorkflow.prompt_system
+        .replace("{lastTranscripts}", lastTranscripts.join("\n * "))
+        .replace("{lastAssistantAnswer}", lastAssistantAnswer);
+
+    // console.log(prompt_system);
+    const prompt_user = agentWorkflow.prompt_user ?? userInput;
+
+    if (apiKey === null || apiKey.length < 10) {
+        console.error(`Set your LLM ${provider} API key in the <i>config_user.js</i>.`);
+        return null;
+    }
+
+    return {
+        provider: provider,
+        model: model,
+        url: url,
+        api_key: apiKey,
+        prompt_system: prompt_system,
+        prompt_user: prompt_user
+    };
+}
+
 
 /**
  * Query the LLM model.
@@ -11,28 +41,20 @@ const max_completion_tokens = 512;
  * @param {string} userInput The User Input
  * @param {function} callback The Callback function: (error, result) => {}
  */
-async function queryLLM(mode, agentName, userInput, callback) {
-    const agent = config_prompts[mode][agentName]; // Contains prompt and provider
-    const provider = config_system.providers[agent.provider]; // Contains the provider url and model
-    const apiKey = window.api_key[agent.provider]; // Contains the API key
-
-    if (apiKey === null) {
-        callback(`Set your LLM ${agentName} API key in the <i>config_user.js</i>.`, null);
-        return;
-    }
+async function queryLLM(agent, callback) {
 
     const data = {
         messages: [
             {
                 role: "system",
-                content: agent.prompt
+                content: agent.prompt_system
             },
             {
                 role: "user",
-                content: userInput
+                content: agent.prompt_user
             }
         ],
-        model: provider.model,
+        model: agent.model,
         temperature: 1,
         top_p: 1,
         stream: false,
@@ -48,11 +70,11 @@ async function queryLLM(mode, agentName, userInput, callback) {
     }
 
     try {
-        const response = await fetch(provider.url, {
+        const response = await fetch(agent.url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${agent.api_key}`
             },
             body: JSON.stringify(data)
         });
