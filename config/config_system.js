@@ -20,12 +20,13 @@ window.config_system = {
         }
     },
     language: "en-US",
+    tts: false,
     labels: {
         "en-US": {
             btn_mic_on: "🎙️ Listen Microphone",
-            btn_mic_off: "🛑 Stop Microphone",
+            btn_mic_off: "🛑 Pause Microphone",
             btn_system_on: "🔊 Listen System",
-            btn_system_off: "🛑 Stop System",
+            btn_system_off: "🛑 Pause System",
             btn_cleanup: "🧹 Cleanup"
         }
     },

@@ -10,7 +10,7 @@
 window.config_user = {
     providers: {
         deepseek: {
-            api_key: "api_user"
+            api_key: "dsk_..."
         }
     }
 }

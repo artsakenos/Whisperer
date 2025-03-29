@@ -1,6 +1,7 @@
 let recognitionStatus = "off"; // off | microphone | system
-let mediastream = null; // Store the media stream globally
-let recognition = null; // Store the Recognition
+let mediastream = null;
+let recognition = null;
+let lastTranscriptTime = Date.now();
 
 function setupRecognition() {
     keepAudioAlive();
@@ -11,25 +12,41 @@ function setupRecognition() {
     recognition.interimResults = true;
     console.log(`Recognition Started with language ${recognition.lang}, and mode ${cmbMode.value}`);
 
+    let lastProcessedTranscript = '';
+    let processingTimeout = null;
+    
     recognition.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = '';
         const currentTime = Date.now();
-
+        
+        // Raccogliamo tutti i risultati
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript.trim();
-
-            if (event.results[i].isFinal ||
-                (currentTime - lastTranscriptTime) > 10000 ||
-                transcript.length > 200) {
+            
+            if (event.results[i].isFinal) {
                 finalTranscript += transcript + '\n';
                 lastTranscriptTime = currentTime;
             } else {
-                interimTranscript += transcript + "🖉";
+                interimTranscript += transcript;
             }
         }
-
-        if (recognition) handleTranscription(interimTranscript, finalTranscript, recognition.lang);
+        
+        // Gestiamo i transcript finali immediatamente
+        if (finalTranscript && finalTranscript !== lastProcessedTranscript) {
+            lastProcessedTranscript = finalTranscript;
+            clearTimeout(processingTimeout);
+            handleTranscription('', finalTranscript, recognition.lang);
+        } 
+        
+        // Gestiamo gli interim transcript con un leggero debounce
+        if (interimTranscript) {
+            clearTimeout(processingTimeout);
+            processingTimeout = setTimeout(() => {
+                // Chiamiamo handleTranscription con final vuoto per gli interim
+                handleTranscription(interimTranscript + "🖉", '', recognition.lang);
+            }, 200); // Ridotto a 200ms per una risposta più reattiva
+        }
     };
 
     recognition.onerror = (event) => {
@@ -47,18 +64,10 @@ function setupRecognition() {
 
 function handleTranscription(interim, final, language) {
     txtStatus.innerHTML = `<strong>Interim:</strong> ${interim}`;
-    // <p><strong>Final:</strong> ${final}</p>`;
-    // txtStatus.scrollTop = txtStatus.scrollHeight;
-
     if (final.trim().length === 0) return;
     lastTranscripts.push(final);
     if (lastTranscripts.length > 5) lastTranscripts.shift();
-
-    // txtOutput.innerHTML = `<strong>Final:</strong> ${final}<hr>`;
-    // txtOutput.innerHTML += `<strong>Last Transcripts:</strong><br>${lastTranscripts.join('<br>')}`;
-    // txtOutput.scrollTop = txtOutput.scrollHeight;
-
-    lastAssistantAnswer = handleOutput(cmbMode.value, language, lastTranscripts, final, lastAssistantAnswer);
+    handleOutput(cmbMode.value, language, lastTranscripts, final);
 }
 
 async function startMicRecognition() {
@@ -161,6 +170,7 @@ function stopRecognition(event, force = false) {
  * There are other ways, but they all have shortcomings.
  */
 function keepAudioAlive() {
+    return; // Disabilitato per ora, non è necessario.
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();

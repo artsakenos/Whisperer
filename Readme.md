@@ -13,29 +13,59 @@ or any scenario where you need a smart, discreet prompter by your side.
 
 ![Demo Banner](./assets/whisper_demo_banner.jpg)
 
-> "Think of it as your personal speech Jedi Knight 👨 - it anticipates, adapts, and assists before you even finish your sentence🚀!" - Guglielmo Cancelli
+> "Think of it as your personal speech Jedi Knight: 👨 it anticipates, adapts, and assists before you even finish your sentence🚀!" - Guglielmo Cancelli
 
 > "I can't do without it. I just shine 🌞 on any interview!" - Pina Bellato
 
+## Usage ⚡
 
-## Installation ⚡
+Create a `config_user.js` file from `config_user (template).js` with your API keys (inside the config folder), 
+or set them in the local storage with the command: 
+`/config providers.<vendor>.api_key <api_key>`.
 
-Create a `config_user.js` file from `config_user (template).js` with your API keys (inside the config folder),
-and open `index.html`.
+Activate the microphone / system listener as needed. 
+Remember that you can also write on the input text and exploit the shortcuts:
+* `CTRL+\` to emable / disable the microphone 
+* `CTRL+ENTER` to input the text from the text area
 
-**Further Custom Tweaks**:
+### Commands Table  
 
-*Define more providers* - LLM providers are defined in `config/config_system.js`. You can define additional providers there. 
-  - It's possible to configure multiple providers for the same endpoint, each with different API keys and/or submodels. 
-  - Define the corresponding API keys in `config/config_user.js`.
-  - Any OpenAI-compatible LLM is ready to use out of the box. 
-    If a request is wrapped differently, you can easily extend the `js/llm.js::queryLLM(...)` function;
-    Examples are provided within the code.
+| Command        | Description |
+|---------------|-------------|
+| `/help`       | Displays the list of available commands. |
+| `/config`     | Reads configuration variables. |
+| `/config [key]` | Reads the value of the `[key]`. |
+| `/config [key] [value]` | Sets the value of `[key]` to `[value]`. |
+| `/config tts [true\|false]` | Enables or disables TTS (text-to-speech). |
+| `/config providers.<vendor>.api_key <api_key>` | Updates the API key for the provider `<vendor>`. |  
 
-*Define more workflows* - Given a *mode* you can define the workflow inside `js/agents.js`. 
-  - All the useful context parameters are available and include 
-    transcripts, interim text, final phrases, classifications, language and previous responses provided up to that point.
-  - You can customize the agent prompts inside `config/config_prompts.js`::window.prompt.{mode}.{agent}.
+---
+
+### Examples Table  
+
+| Command Example | Effect |
+|----------------|--------|
+| `/config tts true` | Enables text-to-speech - only in conversation mode, and right now you need to use headphones ;). |
+| `/config language` | Retrieves the current language setting. |
+| `/config language en` | Sets the language to English. |
+| `/config providers.groq.api_key sk-123456` | Updates the API key for Groq. |
+
+**Custom Tweaks**:
+
+*Define more providers* - LLM providers must be defined in `config/config_system.js`. 
+- Any OpenAI-compatible LLM is ready to use out of the box. 
+  If a request is wrapped differently, you can easily extend the `js/llm.js::queryLLM(...)` function;
+  Examples are provided within the code.
+
+*Define more workflows* - Given a *mode* you can 
+  define the workflow inside `js/agents.js::handleOutput()`. 
+- All the useful context parameters are available and include 
+  transcripts, interim text, final phrases, classifications, language and 
+  previous responses provided up to that point.
+- You can customize the agent prompts inside `config/config_prompts.js`::window.prompt.{mode}.{agent}. 
+  Note that it used to be a hierarchical nested structure before,
+  but I think it was too messy, you can still call agents sequentially and in parallel
+  in the workflow, just defining further sibling-modes to call within the handler. 
 
 
 ## Macro Architecture 🏗️
@@ -76,24 +106,13 @@ The Assistant supports multiple assistance modes. Based on the mode, it performs
 
 # Code Tweaks ⚗️
 
+## js/script.js
+
+Declares the core functions.
+
 ## js/llm.js
 
 Declares the functions to query LLM.
-
-To test if your LLM endpoint is OK you can
-1. Setup the *tester agent* parameters in [config](./config/config_prompts.js)
-2. Export the function globally for testing `window.queryLLM = queryLLM;`
-3. Launch this command on the console:
-```js
-queryLLM("test", "listener", "How is life today?", (error, response) => {
-    if (error) {
-        console.error("Error:", error);
-    } else {
-        console.log("Response:", response);
-    }
-});
-```
-According to the prompt in config_prompts.js a Spanish comedian will answer.
 
 ## js/agents.js
 
@@ -101,11 +120,17 @@ Handles the business logics of the agents.
 
 Check the function `handleOutput` and use its parameters to make the agent behave.
 
-## js/script.js
+## js/audio.js
 
 Handler the microphone events.
 
 
-# TODO 🗺️
-- [ ] Refine the prompts and add a personal CV to the context window
-- [ ] Aggiungere un caso d'uso presentazione, durante la quale fornisce esempi e suggerimenti
+# 🚧 TODO 🗺️
+- [ ] Refine the prompts and add a personal context (e.g., a CV) to the context window
+- [ ] Add a presentation mode, where it suggests you what to say during a presentation
+- [ ] Restore the Interview Mode
+- [ ] Put the whole conversation in a variable, not only the user's messages.
+
+**NOTE** I did a complete refactoring of the libraries, 
+the modes Interview, Phonecall, Conversational partner, are coming back soon.
+

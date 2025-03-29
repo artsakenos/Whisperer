@@ -17,7 +17,7 @@
             <h4><img width="30px" src="assets/icons8-shushing-face-94.png" /> Whisperer</h4>
         </div>
 
-        <button id="btn_mic" class="btn btn-primary" onclick="startMicRecognition()">🎙️ Listen Microphone</button>
+        <button id="btn_mic" class="btn btn-primary" title="Activate with CTRL+\" onclick="startMicRecognition()">🎙️ Listen Microphone</button>
         <button id="btn_system" class="btn btn-secondary" onclick="startSystemRecognition()">🔊 Listen System</button>
         <button id="btn_clean" class="btn btn-danger" onclick="cleanup()">🧹 Cleanup</button>
 
@@ -31,11 +31,13 @@
         <select id="cmb_mode" class="form-select" onchange="cleanup(false)">
             <option value="transcription" selected>⚙️ Mode</option>
             <option value="transcription">✍ Transcription</option>
-            <option value="interview">💼 Interview</option>
             <option value="translate">📜 Translator</option>
             <option value="brainstorming">🧠 Brainstorming</option>
+            <option value="conversation">📞 Conversation</option>
+            <!--
+            <option value="interview">💼 Interview</option>
             <option value="presentation">👥 Presentation</option>
-            <option value="phonecall">📞 Phone Call</option>
+            -->
         </select>
 
         <button id="btn_action" class="btn btn-warning">🚀 Action</button>
@@ -58,6 +60,7 @@
     <script src="./config/config_prompts.js"></script>
     <script src="./js/audio.js"></script>
     <script src="./js/llm.js"></script>
+    <script src="./js/agents.js"></script>
     <script src="./js/script.js"></script>
 </body>
 
