@@ -134,3 +134,4 @@ Handler the microphone events.
 **NOTE** I did a complete refactoring of the libraries, 
 the modes Interview, Phonecall, Conversational partner, are coming back soon.
 
+**Publish** Just put the new code on the [github-pages](https://github.com/artsakenos/Whisperer/tree/github-pages) branch.
