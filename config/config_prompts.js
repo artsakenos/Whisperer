@@ -5,7 +5,8 @@ window.config_prompts.translate = {
    provider: 'groq',
    prompt_system: `You are a specialized agent designed to translate text from any language to English.
          You will now get the input text from the user, recognize the input language and provide the translation in Italian.
-         Don't do or say anything other than translating the text.`
+         Don't do or say anything other than translating the text.`,
+   description: `Translates any text to English`,
 };
 
 window.config_prompts.brainstorming = {
@@ -28,7 +29,9 @@ window.config_prompts.brainstorming = {
          <last assistant answer>
          {lastAssistantAnswer}
          </last assistant answer>
-      `
+      `,
+   description: `An intelligent teleprompter assistant that enhances the user's spoken ideas.`,
+   max_tokens: 3000,
 };
 
 window.config_prompts.conversation = {
@@ -44,11 +47,13 @@ window.config_prompts.conversation = {
                <last assistant answer>
                {lastAssistantAnswer}
                </last assistant answer>
-            `
+            `,
+   description: `A conversation buddy. Just talk with it.`,
+   max_tokens: 1000,
 };
 
 // -------------------------------------------------------------------
-// After the refactoring I need to rebuild the agents
+// After the refactoring I need to restructure the agents prompts
 // -------------------------------------------------------------------
 
 window.prompt.interview = {

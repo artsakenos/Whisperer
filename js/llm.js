@@ -18,7 +18,10 @@ function retrieveAgent(mode, lastTranscripts, userInput, lastAssistantAnswer) {
     const prompt_user = agentWorkflow.prompt_user ?? userInput;
 
     if (apiKey === null || apiKey.length < 10) {
-        console.error(`Set your LLM ${provider} API key in the <i>config_user.js</i>.`);
+        // TODO: Usare log_error
+        console.error(`LLM ${provider} API key Not Set</i>.`);
+        txtOutput.innerHTML += `<br/><font color=red>Error: You need to set up the  <b>${provider} provider</b> for <b>${mode}</b> mode.</font>`;
+        txtOutput.innerHTML += `<br/><font color=red>You can setup the api key in the command: <i>config_user.js</i> file or with the <br/><b>/config providers.${provider}.api_key YOUR_APIKEY</b>.</font><br />`;
         return null;
     }
 

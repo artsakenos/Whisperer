@@ -2,6 +2,7 @@ const btnMic = document.getElementById('btn_mic');
 const btnSystem = document.getElementById('btn_system');
 const btnClean = document.getElementById('btn_clean');
 const btnSend = document.getElementById('btn_send');
+const btnAction = document.getElementById('btn_action');
 
 const cmbLanguage = document.getElementById('cmb_language');
 const cmbMode = document.getElementById('cmb_mode');
@@ -21,7 +22,9 @@ function log_error(verbose, error) {
 function cleanup(cleanOutput = true) {
     let language = cmbLanguage.value || 'en-US';
     let mode = cmbMode.value || 'transcription';
-    txtStatus.innerHTML = "🔍 Status: Ready; Language: " + language + "; Mode: " + mode + ";";
+    let description = window.config_prompts[mode]?.description;
+    if (description === undefined) description = '';
+    txtStatus.innerHTML = `🔍 Status: Ready; Language: ${language}; Mode: ${mode} <small>(${description})</small>;`;
     if (cleanOutput)
         // txtOutput.innerHTML = window.config_system.help["en-US"];
         txtOutput.innerHTML = "📄 Ready...<br />";
@@ -44,7 +47,7 @@ document.addEventListener('keydown', function (event) {
 btnSend.addEventListener("click", function () {
     const userInput = edtUserInput.value;
     const language = cmbLanguage.value || 'en-US';
-    handleTranscription('', userInput, language);
+    if (userInput && userInput.trim() !== '') handleTranscription('', userInput, language);
     edtUserInput.value = '';
 });
 
@@ -53,25 +56,29 @@ edtUserInput.addEventListener("keydown", function (event) {
         event.preventDefault(); // Impedisce l'inserimento di una nuova riga nell'area di testo
         const userInput = edtUserInput.value;
         const language = cmbLanguage.value || 'en-US';
-        handleTranscription('', userInput, language);
+        if (userInput && userInput.trim() !== '') handleTranscription('', userInput, language);
         edtUserInput.value = '';
     }
+});
+
+btnAction.addEventListener("click", function () {
+    window.alert('Action button (to implement further custom actions)!');
 });
 
 cleanup();
 
 function tts(text) {
     if ('speechSynthesis' in window) {
-        const tts_on = config_get('tts');
-        if (!tts_on) return;
-        // Rimozione dei caratteri speciali.
+        const tts_status = config_get('tts');
+        if (!tts_status || tts_status.toLowerCase() !== "on") return;
+        // Remove spcial characters
         const filteredText = text.replace(/[#*_\[\](){}`><~|\\]/g, '');
 
         const utterance = new SpeechSynthesisUtterance(filteredText);
         utterance.lang = cmbLanguage.value || 'en-US';
-        utterance.volume = 1; // Volume massimo (range da 0 a 1)
-        utterance.rate = 1;   // Velocità normale (range da 0.1 a 10)
-        utterance.pitch = 1;  // Tono normale (range da 0 a 2)
+        utterance.volume = 1; // Max Volume (range is 0 to 1)
+        utterance.rate = 1;   // Normal Speed (range is 0.1 to 10)
+        utterance.pitch = 1;  // Normal Pitch (range is 0 to 2)
 
         utterance.onstart = () => {
             console.log('TTS Started.');

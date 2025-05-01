@@ -14,16 +14,16 @@ function setupRecognition() {
 
     let lastProcessedTranscript = '';
     let processingTimeout = null;
-    
+
     recognition.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = '';
         const currentTime = Date.now();
-        
+
         // Raccogliamo tutti i risultati
         for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript.trim();
-            
+
             if (event.results[i].isFinal) {
                 finalTranscript += transcript + '\n';
                 lastTranscriptTime = currentTime;
@@ -31,14 +31,14 @@ function setupRecognition() {
                 interimTranscript += transcript;
             }
         }
-        
+
         // Gestiamo i transcript finali immediatamente
         if (finalTranscript && finalTranscript !== lastProcessedTranscript) {
             lastProcessedTranscript = finalTranscript;
             clearTimeout(processingTimeout);
             handleTranscription('', finalTranscript, recognition.lang);
-        } 
-        
+        }
+
         // Gestiamo gli interim transcript con un leggero debounce
         if (interimTranscript) {
             clearTimeout(processingTimeout);
@@ -64,6 +64,7 @@ function setupRecognition() {
 
 function handleTranscription(interim, final, language) {
     txtStatus.innerHTML = `<strong>Interim:</strong> ${interim}`;
+    if (!interim || interim.trim() === '') txtStatus.innerHTML = "🔍 Status: User Input; Language: " + language + ";";
     if (final.trim().length === 0) return;
     lastTranscripts.push(final);
     if (lastTranscripts.length > 5) lastTranscripts.shift();
