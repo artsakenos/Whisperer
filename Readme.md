@@ -38,7 +38,7 @@ Remember that you can also write on the input text and exploit the shortcuts:
 | `/config`                                      | Reads configuration variables.                   |
 | `/config [key]`                                | Reads the value of the `[key]`.                  |
 | `/config [key] [value]`                        | Sets the value of `[key]` to `[value]`.          |
-| `/config tts [true\|false]`                    | Enables or disables TTS (text-to-speech).        |
+| `/config tts [on\|off]`                        | Enables or disables TTS (text-to-speech).        |
 | `/config providers.<vendor>.api_key <api_key>` | Updates the API key for the provider `<vendor>`. |  
 
 ---

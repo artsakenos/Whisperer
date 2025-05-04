@@ -40,7 +40,6 @@ function handleOutput(mode, language, lastTranscripts, userInput) {
         return userInput;
     }
 
-    txtStatus.innerHTML += `\n<hr><strong>The Agents</strong> are 🤔 thinking in mode <i>${mode}</i>`;
     var agent = retrieveAgent(mode, lastTranscripts, userInput, lastAssistantAnswer);
 
     if (agent === null) {

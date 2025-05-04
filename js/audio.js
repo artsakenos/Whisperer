@@ -68,6 +68,7 @@ function handleTranscription(interim, final, language) {
     if (final.trim().length === 0) return;
     lastTranscripts.push(final);
     if (lastTranscripts.length > 5) lastTranscripts.shift();
+    txtStatus.innerHTML += `\n<hr><strong>Whisperer</strong> is 🤔 working in mode <i>${cmbMode.value}</i>`;
     handleOutput(cmbMode.value, language, lastTranscripts, final);
 }
 

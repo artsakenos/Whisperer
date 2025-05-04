@@ -19,15 +19,19 @@ function log_error(verbose, error) {
     console.error(verbose, error);
 }
 
-function cleanup(cleanOutput = true) {
+function cleanup(cleanOutput = true, stopRec = false) {
+    if (stopRec) {
+        stopRecognition(null, true);
+    }
     let language = cmbLanguage.value || 'en-US';
     let mode = cmbMode.value || 'transcription';
     let description = window.config_prompts[mode]?.description;
-    if (description === undefined) description = '';
+    if (description === undefined) description = 'Transcribes the text';
     txtStatus.innerHTML = `🔍 Status: Ready; Language: ${language}; Mode: ${mode} <small>(${description})</small>;`;
-    if (cleanOutput)
+    if (cleanOutput) {
         // txtOutput.innerHTML = window.config_system.help["en-US"];
         txtOutput.innerHTML = "📄 Ready...<br />";
+    }
 }
 
 /**

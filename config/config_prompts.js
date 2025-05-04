@@ -48,8 +48,8 @@ window.config_prompts.conversation = {
                {lastAssistantAnswer}
                </last assistant answer>
             `,
-   description: `A conversation buddy. Just talk with it.`,
-   max_tokens: 1000,
+            description: `A conversation buddy. Just talk with it.`,
+            max_tokens: 1000,
 };
 
 // -------------------------------------------------------------------
