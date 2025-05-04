@@ -25,7 +25,7 @@ function handleOutput(mode, language, lastTranscripts, userInput) {
         return '';
     }
 
-    if (userInput.toLowerCase() === '/help') {
+    if (userInput.toLowerCase() === '/help' || userInput.toLowerCase() === '/?') {
         window.open('https://github.com/artsakenos/Whisperer?tab=readme-ov-file#usage-', '_blank');
         return '';
     }
@@ -40,7 +40,6 @@ function handleOutput(mode, language, lastTranscripts, userInput) {
         return userInput;
     }
 
-    txtStatus.innerHTML += `\n<hr><strong>The Agents</strong> are 🤔 thinking in mode <i>${mode}</i>`;
     var agent = retrieveAgent(mode, lastTranscripts, userInput, lastAssistantAnswer);
 
     if (agent === null) {
@@ -53,7 +52,13 @@ function handleOutput(mode, language, lastTranscripts, userInput) {
             if (error) {
                 console.error('LLM error:', error);
             } else {
-                txtOutput.innerHTML = `<strong>📚 ${mode}: </strong>${response.replace(/\n/g, '<br>')}`;
+                txtOutput.innerHTML += `<br/><strong>📚 ${mode}: </strong>${response.replace(/\n/g, '<br>')}`;
+                const maxLength = 5000;
+                while (txtOutput.innerHTML.length > maxLength) { // Cut the output to avoid overflow.
+                    const firstBreak = txtOutput.innerHTML.indexOf('<br>');
+                    if (firstBreak === -1) break;
+                    txtOutput.innerHTML = txtOutput.innerHTML.slice(firstBreak + 4);
+                }
                 lastAssistantAnswer = response;
             }
         });
@@ -124,6 +129,7 @@ function handleConfig(userInput) {
         txtOutput.innerHTML += `<br> <b>${key}</b> set to <i>${value}</i>`;
     } else {
         txtOutput.innerHTML += "<br>Usage: /config [key] (to read [key]) or /config [key] [value] (to set [key] with [value])";
+        txtOutput.innerHTML += "<br>/help for more details.";
     }
     return '';
 }

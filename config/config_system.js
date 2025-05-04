@@ -8,7 +8,8 @@ window.config_system = {
         groq: {
             url: "https://api.groq.com/openai/v1/chat/completions",
             model: "llama-3.3-70b-versatile",
-            api_key: "gq_key"
+            api_key: "gq_key",          // This is here just as a structural example. Needs to be overridden.
+            context_windows: 128_000    // This is here for future tests.
         },
         cerebras: {
             url: "https://api.cerebras.ai/v1/chat/completions",
@@ -20,7 +21,7 @@ window.config_system = {
         }
     },
     language: "en-US",
-    tts: false,
+    tts: "off",
     labels: {
         "en-US": {
             btn_mic_on: "🎙️ Listen Microphone",
